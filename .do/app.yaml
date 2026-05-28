@@ -1,0 +1,63 @@
+name: graph-sentinel
+region: nyc
+services:
+  - name: backend
+    github:
+      repo: SagarAgarwal2/graph-sentinel
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: backend/Dockerfile.backend
+    http_port: 8787
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: SUPABASE_URL
+        scope: RUN_TIME
+        value: ${VITE_SUPABASE_URL}
+      - key: SUPABASE_ANON_KEY
+        scope: RUN_TIME
+        value: ${VITE_SUPABASE_ANON_KEY}
+      - key: ML_SERVICE_URL
+        scope: RUN_TIME
+        value: http://ml:8790
+    routes:
+      - path: /api
+
+  - name: ml
+    github:
+      repo: SagarAgarwal2/graph-sentinel
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: backend/Dockerfile.ml
+    internal_ports:
+      - 8790
+    instance_count: 1
+    instance_size_slug: basic-xs
+    envs:
+      - key: ML_PORT
+        scope: RUN_TIME
+        value: "8790"
+      - key: ML_HOST
+        scope: RUN_TIME
+        value: "0.0.0.0"
+
+static_sites:
+  - name: frontend
+    github:
+      repo: SagarAgarwal2/graph-sentinel
+      branch: main
+      deploy_on_push: true
+    build_command: npm run build
+    output_dir: dist
+    envs:
+      - key: VITE_SUPABASE_URL
+        scope: BUILD_TIME
+        value: ${VITE_SUPABASE_URL}
+      - key: VITE_SUPABASE_ANON_KEY
+        scope: BUILD_TIME
+        value: ${VITE_SUPABASE_ANON_KEY}
+      - key: VITE_API_BASE_URL
+        scope: BUILD_TIME
+        value: /api
+    routes:
+      - path: /

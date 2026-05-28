@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  ml:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.ml
+    container_name: graphsentinel-ml
+    restart: unless-stopped
+    environment:
+      - ML_PORT=8790
+      - ML_HOST=0.0.0.0
+      # Limit TensorFlow memory and CPU usage on small VMs if needed
+      - OMP_NUM_THREADS=1
+      - TF_NUM_INTRAOP_THREADS=1
+      - TF_NUM_INTEROP_THREADS=1
+    volumes:
+      - ml-data:/app/backend/ml_artifacts
+    networks:
+      - graphsentinel-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.backend
+    container_name: graphsentinel-backend
+    restart: unless-stopped
+    depends_on:
+      - ml
+    environment:
+      - PORT=8787
+      - ML_SERVICE_URL=http://ml:8790
+      - SUPABASE_URL=${VITE_SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - CORS_ORIGIN=*
+    networks:
+      - graphsentinel-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+        - VITE_API_BASE_URL=
+    container_name: graphsentinel-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - graphsentinel-net
+
+volumes:
+  ml-data:
+
+networks:
+  graphsentinel-net:
+    driver: bridge
