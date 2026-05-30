@@ -104,12 +104,13 @@ export default function Reports() {
   };
 
   const colorizeXml = (xml: string) => {
-    return xml
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/&lt;(\/?[\w:]+)/g, '<span style="color:#2B6DEF">&lt;$1</span>')
-      .replace(/&gt;/g, '<span style="color:#2B6DEF">&gt;</span>')
-      .replace(/&gt;([^&<]+)&lt;/g, '&gt;<span style="color:#E5E7EB">$1</span>&lt;')
-      .replace(/([\w:]+)="([^"]*)"/g, '<span style="color:#9CA3AF">$1</span>=<span style="color:#10B981">"$2"</span>');
+    let escaped = xml.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Attributes
+    escaped = escaped.replace(/(\s)([\w:]+)="([^"]*)"/g, '$1<span style="color:#9CA3AF">$2</span>=<span style="color:#10B981">"$3"</span>');
+    // Tags
+    escaped = escaped.replace(/&lt;(\/?[\w:]+)/g, '<span style="color:#2B6DEF">&lt;$1</span>');
+    escaped = escaped.replace(/&gt;/g, '<span style="color:#2B6DEF">&gt;</span>');
+    return escaped;
   };
 
   if (loading) {

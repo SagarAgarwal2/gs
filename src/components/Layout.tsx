@@ -8,23 +8,23 @@ import {
 import { fetchDashboardSummary } from '../lib/api';
 
 const navItems = [
-  { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/graph',      icon: GitFork,         label: 'Fund Flow Graph' },
-  { to: '/alerts',     icon: ShieldAlert,     label: 'Fraud Alerts',    badge: true },
-  { to: '/reports',    icon: FileText,        label: 'STR / CTR Reports' },
-  { to: '/federated',  icon: Network,         label: 'Federated Network' },
-  { to: '/simulator',  icon: Activity,        label: 'Transaction Simulator' },
-  { to: '/settings',   icon: Settings,        label: 'Settings' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/graph', icon: GitFork, label: 'Fund Flow Graph' },
+  { to: '/alerts', icon: ShieldAlert, label: 'Fraud Alerts', badge: true },
+  { to: '/reports', icon: FileText, label: 'STR / CTR Reports' },
+  { to: '/federated', icon: Network, label: 'Federated Network' },
+  { to: '/simulator', icon: Activity, label: 'Transaction Simulator' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 const PAGE_META: Record<string, { title: string; sub: string }> = {
-  '/dashboard':  { title: 'Command Center',              sub: 'Real-time transaction monitoring and alert overview' },
-  '/graph':      { title: 'Fund Flow Graph',             sub: 'Interactive fund flow visualization powered by D3.js' },
-  '/alerts':     { title: 'Fraud Alert Workbench',       sub: 'AI-powered fraud detection with SHAP causal analysis' },
-  '/reports':    { title: 'STR / CTR Reports',           sub: 'Auto-generated goAML-compliant documentation' },
-  '/federated':  { title: 'Federated Learning Network',  sub: '26-bank privacy-preserving AI network' },
-  '/simulator':  { title: 'Transaction Simulator',       sub: 'Simulate manual transfers or trigger pre-defined ML fraud scenarios' },
-  '/settings':   { title: 'Settings & Configuration',    sub: 'Detection thresholds, routing rules and audit trail' },
+  '/dashboard': { title: 'Command Center', sub: 'Real-time transaction monitoring and alert overview' },
+  '/graph': { title: 'Fund Flow Graph', sub: 'Interactive fund flow visualization powered by D3.js' },
+  '/alerts': { title: 'Fraud Alert Workbench', sub: 'AI-powered fraud detection with SHAP causal analysis' },
+  '/reports': { title: 'STR / CTR Reports', sub: 'Auto-generated goAML-compliant documentation' },
+  '/federated': { title: 'Federated Learning Network', sub: '26-bank privacy-preserving AI network' },
+  '/simulator': { title: 'Transaction Simulator', sub: 'Simulate manual transfers or trigger pre-defined ML fraud scenarios' },
+  '/settings': { title: 'Settings & Configuration', sub: 'Detection thresholds, routing rules and audit trail' },
 };
 
 export default function Layout() {
@@ -75,10 +75,9 @@ export default function Layout() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-2.5 py-2 rounded-md transition-all duration-100 group relative ${
-                  isActive
-                    ? 'nav-active'
-                    : 'text-body hover:bg-[rgba(83,58,253,0.04)] hover:text-navy'
+                `flex items-center gap-3 px-2.5 py-2 rounded-md transition-all duration-100 group relative ${isActive
+                  ? 'nav-active'
+                  : 'text-body hover:bg-[rgba(83,58,253,0.04)] hover:text-navy'
                 }`
               }
             >

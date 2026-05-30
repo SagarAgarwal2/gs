@@ -3,9 +3,21 @@ import { URL } from 'node:url';
 import { createSupabaseClient } from './lib/supabase.mjs';
 import { generateGoamlXml } from './lib/goaml.mjs';
 import { detectFraudAlerts, summarizeDashboard, summarizeGraph } from './lib/detection.mjs';
+import { forecastRiskPath } from './lib/predict.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+let CORS_ORIGIN = process.env.CORS_ORIGIN;
+
+if (process.env.NODE_ENV === 'production' && (!CORS_ORIGIN || CORS_ORIGIN === '*')) {
+  console.error("CRITICAL: CORS_ORIGIN must be explicitly set to a tight allowlist in production.");
+  process.exit(1);
+}
+
+// Fallback for local development
+if (!CORS_ORIGIN) {
+  CORS_ORIGIN = '*';
+}
+
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8790';
 const supabase = createSupabaseClient();
 
@@ -58,7 +70,22 @@ async function loadDataset() {
     supabase.select('federated_nodes', { order: { column: 'alerts_contributed', ascending: false }, limit: 100 }),
   ]);
 
-  return { accounts, transactions, alerts, reports, patterns, nodes };
+  // HACK: Filter out all historical data to provide a completely clean slate for the UI
+  // because Row Level Security prevents the anon key from actually deleting the database rows.
+  const RESET_TIMESTAMP = 1716918204000; // 2026-05-28T17:43:24.000Z
+  
+  const filteredTransactions = transactions.filter(t => new Date(t.timestamp).getTime() > RESET_TIMESTAMP);
+  const filteredAlerts = alerts.filter(a => new Date(a.created_at).getTime() > RESET_TIMESTAMP);
+  const filteredReports = reports.filter(r => new Date(r.created_at).getTime() > RESET_TIMESTAMP);
+
+  return { 
+    accounts, 
+    transactions: filteredTransactions, 
+    alerts: filteredAlerts, 
+    reports: filteredReports, 
+    patterns, 
+    nodes 
+  };
 }
 
 async function analyzeWithMlService({ accounts, transactions, patterns, targetAccountIds }) {
@@ -365,6 +392,9 @@ async function handleRequest(req, res) {
         transactions: dataset.transactions,
         patterns: dataset.patterns,
         targetAccountIds,
+      }).catch(err => {
+        console.error("ML Service Error (falling back to rules):", err.message);
+        return { alerts: [] };
       });
 
       const rawAlerts = [...ruleAlerts, ...(analysis.alerts || [])];
@@ -387,6 +417,24 @@ async function handleRequest(req, res) {
         count: toInsert.length + toUpdate.length,
         model: analysis.model || 'python-ml-service',
       });
+      return;
+    }
+
+    if (url.pathname === '/api/forecast-risk' && req.method === 'POST') {
+      try {
+        const body = await readJsonBody(req);
+        if (!body.accountId) {
+          jsonResponse(res, 400, { error: 'accountId is required' });
+          return;
+        }
+
+        const dataset = await loadDataset();
+        const predictions = forecastRiskPath(body.accountId, dataset.transactions, dataset.accounts);
+
+        jsonResponse(res, 200, { predictions });
+      } catch (err) {
+        jsonResponse(res, 500, { error: err.message });
+      }
       return;
     }
 

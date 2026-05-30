@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ShieldAlert, X, CheckCircle, XCircle, ChevronDown, ChevronUp,
-  MessageSquare, AlertTriangle, Clock, TrendingUp, User, ChevronRight, Download,
+  MessageSquare, AlertTriangle, Clock, TrendingUp, User, ChevronRight, Download, Network, Zap
 } from 'lucide-react';
 import { type FraudAlert, type Account, type InvestigatorFeedback } from '../lib/supabase';
 import {
@@ -30,6 +30,8 @@ export default function FraudAlerts() {
   const [noteText, setNoteText] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [riskPredictions, setRiskPredictions] = useState<any[]>([]);
+  const [predictingRisk, setPredictingRisk] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -52,6 +54,27 @@ export default function FraudAlerts() {
     setSelectedAlert(a);
     loadFeedback(a.id);
     setNoteText('');
+    setRiskPredictions([]);
+  };
+
+  const handleForecastRisk = async (accountId: string) => {
+    setPredictingRisk(true);
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787';
+      const res = await fetch(`${API_BASE}/api/forecast-risk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId })
+      });
+      const data = await res.json();
+      if (data.predictions) {
+        setRiskPredictions(data.predictions);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPredictingRisk(false);
+    }
   };
 
   const updateAlertStatus = async (status: string) => {
@@ -330,6 +353,47 @@ export default function FraudAlerts() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Forecast Risk Path */}
+            <div className="px-5 py-4 border-b border-border">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-semibold text-muted uppercase tracking-widest">Forecast Risk Path</p>
+                <button
+                  onClick={() => handleForecastRisk(selectedAlert.involved_accounts[0])}
+                  disabled={predictingRisk}
+                  className="btn btn-secondary py-1.5 px-3 text-[11px]"
+                >
+                  {predictingRisk ? (
+                    'Forecasting...'
+                  ) : (
+                    <>
+                      <Network className="w-3.5 h-3.5 mr-1.5" />
+                      Forecast Path
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {riskPredictions.length > 0 && (
+                <div className="space-y-2 mt-3 p-3 bg-[#fdf2f8] border border-[#fbcfe8] rounded-lg">
+                  <div className="flex items-center gap-2 mb-2 text-[#be185d]">
+                    <Zap className="w-3.5 h-3.5" />
+                    <p className="text-[11px] font-semibold uppercase tracking-wider">Accounts likely to become involved next:</p>
+                  </div>
+                  {riskPredictions.map((pred, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-[12px] bg-white p-2 rounded border border-[#fbcfe8]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-[#fce7f3] text-[#be185d] rounded-full flex items-center justify-center text-[10px] font-bold">
+                          {idx + 1}
+                        </div>
+                        <span className="font-medium text-text">{pred.name}</span>
+                      </div>
+                      <span className="font-mono text-[#be185d] font-bold">{pred.probability}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Evidence Timeline */}

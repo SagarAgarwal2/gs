@@ -276,7 +276,9 @@ function detectStructuring({ accounts, transactions, pattern }) {
     }
 
     const spanHours = hoursBetween(subThreshold[0].timestamp, subThreshold[subThreshold.length - 1].timestamp);
-    const confidence = clamp(0.54 + subThreshold.length * 0.08 + Math.min(totalAmount / (REPORTING_THRESHOLD * 6), 0.16), 0, 0.96);
+    const excessCount = subThreshold.length - 4;
+    const excessVolume = totalAmount - REPORTING_THRESHOLD;
+    const confidence = clamp(0.65 + Math.min(excessCount * 0.05, 0.20) + Math.min(excessVolume / (REPORTING_THRESHOLD * 2), 0.11), 0, 0.96);
 
     alerts.push(
       makeAlert({
@@ -315,7 +317,8 @@ function detectDormantReactivation({ accounts, transactions, pattern }) {
 
     seen.add(account.id);
     const totalAmount = reactivationTransactions.reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
-    const confidence = clamp(0.62 + Math.min(dormancyGap / 365, 0.22) + Math.min(totalAmount / 10000000, 0.12), 0, 0.97);
+    const excessDormancy = dormancyGap - 180;
+    const confidence = clamp(0.62 + Math.min(excessDormancy / (365 * 3), 0.22) + Math.min(totalAmount / 20000000, 0.13), 0, 0.97);
 
     alerts.push(
       makeAlert({
@@ -357,8 +360,8 @@ function detectKycMismatch({ accounts, transactions, pattern }) {
     const monthlyIncomeEquivalent = effectiveAnnualIncome / 12;
     const ratio = monthlyVolume / monthlyIncomeEquivalent;
 
-    // Only trigger if the monthly volume is substantial (> 10 Lakhs) AND exceeds the monthly income by 5x
-    if (ratio < 5 || monthlyVolume < 1000000) {
+    // Only trigger if the monthly volume is substantial (> 80 Lakhs) AND exceeds the monthly income by 5x
+    if (ratio < 5 || monthlyVolume < 8000000) {
       continue;
     }
 
@@ -370,7 +373,8 @@ function detectKycMismatch({ accounts, transactions, pattern }) {
       continue;
     }
 
-    const confidence = clamp(0.58 + Math.min(ratio / 10, 0.32) + (account.account_type === 'savings' ? 0.04 : 0), 0, 0.98);
+    const excessRatio = ratio - 50;
+    const confidence = clamp(0.75 + Math.min(excessRatio / 100, 0.19) + (account.account_type === 'savings' ? 0.04 : 0), 0, 0.98);
     const totalAmount = relatedTransactions.reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
 
     alerts.push(

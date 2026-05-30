@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { fetchAccounts, postTransaction, triggerAnalysis } from '../lib/api';
 import type { Account } from '../lib/supabase';
-import { 
-  Send, ShieldAlert, CheckCircle2, AlertTriangle, Play, Zap, RefreshCw, BarChart2, CornerDownRight 
+import {
+  Send, ShieldAlert, CheckCircle2, AlertTriangle, Play, Zap, RefreshCw, BarChart2, CornerDownRight
 } from 'lucide-react';
 
 interface AlertFactor {
@@ -139,14 +139,14 @@ export default function TransactionSimulator() {
       const activeAccountIds = new Set(transactionsToPost.flatMap(t => [t.sender_account_id, t.receiver_account_id]));
       // If a preset was used, prioritize finding the alert type that matches the preset.
       // (Otherwise, high-value transfers might trigger a 94% KYC Mismatch that overshadows the intended 90% Layering alert)
-      let matchingAlert = (analysis.alerts || []).find((alert: any) => 
-        presetType && alert.pattern_type.includes(presetType) && 
+      let matchingAlert = (analysis.alerts || []).find((alert: any) =>
+        presetType && alert.pattern_type.includes(presetType) &&
         (alert.involved_accounts || []).some((accId: string) => activeAccountIds.has(accId))
       );
 
       // Fallback: just find any alert involving these accounts
       if (!matchingAlert) {
-        matchingAlert = (analysis.alerts || []).find((alert: any) => 
+        matchingAlert = (analysis.alerts || []).find((alert: any) =>
           (alert.involved_accounts || []).some((accId: string) => activeAccountIds.has(accId))
         );
       }
@@ -155,8 +155,8 @@ export default function TransactionSimulator() {
         // Parse factors if stringified
         let shapFactors: AlertFactor[] = [];
         try {
-          shapFactors = typeof matchingAlert.shap_factors === 'string' 
-            ? JSON.parse(matchingAlert.shap_factors) 
+          shapFactors = typeof matchingAlert.shap_factors === 'string'
+            ? JSON.parse(matchingAlert.shap_factors)
             : (matchingAlert.shap_factors || []);
         } catch {
           shapFactors = [];
@@ -200,22 +200,17 @@ export default function TransactionSimulator() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       {/* Introduction Card */}
-      <div className="bg-gradient-to-r from-primary to-purple-600 rounded-xl p-6 text-white shadow-lg">
-        <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-          <Zap className="w-5 h-5 fill-white" /> Live Transaction Simulation Sandbox
+      <div className="mb-2">
+        <h2 className="text-[15px] font-semibold text-text flex items-center gap-2">
+          <Zap className="w-4 h-4 text-primary" /> Live Transaction Simulator
         </h2>
-        <p className="text-sm opacity-90 max-w-3xl leading-relaxed">
-          Test the limits of GraphSentinel’s machine learning engine in real-time. Conduct individual 
-          custom transfers or trigger advanced predefined fraud patterns. Watch the hybrid LSTM + Graph Convolutional Network 
-          instantly process ledger updates and construct regulator-defensible Integrated Gradients causal narratives.
-        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column: Form & Presets */}
         <div className="lg:col-span-7 space-y-6">
-          
+
           {/* Preset Fraud Scenarios Card */}
           <div className="bg-white rounded-xl p-5 border border-border shadow-sm">
             <h3 className="text-sm font-semibold text-navy uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -271,7 +266,7 @@ export default function TransactionSimulator() {
             <h3 className="text-sm font-semibold text-navy uppercase tracking-wider mb-4 flex items-center gap-2">
               <Send className="w-4 h-4 text-primary" /> Create Manual Transaction
             </h3>
-            
+
             {loadingAccounts ? (
               <div className="flex items-center gap-2 text-sm text-body py-4">
                 <RefreshCw className="w-4 h-4 animate-spin" /> Loading ledger accounts...
@@ -351,11 +346,11 @@ export default function TransactionSimulator() {
 
         {/* Right Column: Execution Progress & Live Prediction Result */}
         <div className="lg:col-span-5 space-y-6">
-          
+
           <div className="bg-white rounded-xl p-5 border border-border shadow-sm h-full flex flex-col justify-between">
             <div>
               <h3 className="text-sm font-semibold text-navy uppercase tracking-wider mb-4 flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-primary" /> Live AI Engine Response
+                <BarChart2 className="w-4 h-4 text-primary" /> Live Engine Response
               </h3>
 
               {/* Loader Screen */}
@@ -416,8 +411,8 @@ export default function TransactionSimulator() {
                                     <span className="text-body font-mono font-semibold">{(factor.weight * 100).toFixed(0)}%</span>
                                   </div>
                                   <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-danger rounded-full" 
+                                    <div
+                                      className="h-full bg-danger rounded-full"
                                       style={{ width: `${factor.weight * 100}%` }}
                                     />
                                   </div>
@@ -466,7 +461,7 @@ export default function TransactionSimulator() {
             {/* Subtext info */}
             {!isSimulating && (
               <div className="mt-4 pt-4 border-t border-border text-[10px] text-body leading-normal">
-                💡 **Pro Tip:** Inbound and outbound transactions will expand your ledger and community graphs dynamically, updating the **Fund Flow Graph** view.
+                💡 Pro Tip: Inbound and outbound transactions will expand your ledger and community graphs dynamically, updating the Fund Flow Graph view.
               </div>
             )}
           </div>
