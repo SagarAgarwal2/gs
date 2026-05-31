@@ -21,8 +21,8 @@ GraphSentinel is built on an enterprise-grade, distributed microservices archite
 ## How to Run Locally (POC Environment)
 For the hackathon evaluation, we have containerised a lightweight version of the stack via Docker Compose.
 
-1. **Clone the repo:** `git clone https://github.com/your-team/graph-sentinel.git`
-2. **Navigate to directory:** `cd "graph sentinel"`
+1. **Clone the repo:** `git clone https://github.com/SagarAgarwal2/gs`
+2. **Navigate to directory:** `cd "gs`
 3. **Set Environment Variables:** Create a `.env` file in the root with required database credentials.
 4. **Launch the stack:** `docker compose up -d --build`
 5. **Open browser:** Go to `http://localhost` (The app runs on port 80).
